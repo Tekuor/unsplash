@@ -40,7 +40,7 @@
                         <b-button style="color: #BDBDBD;" type="is-ghost" @click="photoModalActive = false">Cancel</b-button>
                       </span>
                       <span>
-                        <b-button id="submit-button" type="is-primary" class="is-pulled-right" @click="create">Submit</b-button>
+                        <b-button id="submit-button" type="is-primary" :loading="loading" class="is-pulled-right" @click="create">Submit</b-button>
                       </span>
                     </div>
                   </div>
@@ -64,14 +64,22 @@ export default {
       photoModalActive: false,
       url: "",
       label: "",
-      filter: ""
+      filter: "",
+      loading: false
     }
   },
   methods:{
     ...mapActions("Images", ["createNewImage"]),
     async create(){
-      await this.createNewImage({label: this.label, url:this.url})
-      this.photoModalActive = false
+      try{
+        this.loading = true
+        await this.createNewImage({label: this.label, url:this.url})
+        this.photoModalActive = false
+      }catch(e){
+        console.log(e)
+      }finally{
+        this.loading = false
+      }
     }
   }
 }
