@@ -1,58 +1,131 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
-  </div>
+<div>
+   <masonry
+      :gutter="{ default: '30px', 700: '15px' }"
+      :cols="{ default: 3, 1000: 3, 700: 2, 500: 1 }"
+      v-if="items.length"
+    >
+      <div
+        v-for="item in items"
+        :key="item.id"
+        class="mt-2 mb-2"
+        color="blue lighten-3"
+      >
+        <div class="container" @mouseover="hoverImg(item.id)" @mouseleave="hoveredId = ''">
+          <img id="con" :src="item.url" />
+          <b-button @click="showDeleteModal(item.id)" v-if="hoveredId === item.id" class="delete-btn" type="is-danger" outlined>delete</b-button>
+          <div class="label" v-if="hoveredId === item.id">{{item.label}}</div>
+        </div>
+      </div>
+    </masonry>
+
+    <div v-else class="noImages">No Images Available</div>
+</div>
 </template>
 
 <script>
+import { mapActions } from "vuex";
 export default {
   name: 'HelloWorld',
   props: {
-    msg: String
+    filter: String
+  },
+  mounted(){
+    this.getAllImages()
+  },
+  data(){
+    return{
+      hoveredId:"",
+      password: "",
+      deleteModalActive: false
+    }
+  },
+  methods:{
+    ...mapActions("Images", ["getTotalImages", "deleteOneImage"]),
+    hoverImg(id){
+      this.hoveredId = id
+    },
+    async showDeleteModal(id){
+      this.$buefy.dialog.confirm({
+        title: 'Deleting image',
+        message: 'Are you sure you want to <b>delete</b> the image?',
+        confirmText: 'Delete',
+        type: 'is-danger',
+        hasIcon: true,
+        onConfirm: () => this.deleteImage(id)
+      })
+    },
+    async getAllImages(){
+      await this.getTotalImages({})
+    },
+    async deleteImage(id){
+      await this.deleteOneImage(id)
+      this.deleteModalActive = true
+    }
+  },
+  computed:{
+    items(){
+      const images = this.$store.getters['Images/getAllImages']
+      if(this.filter){
+        const result = images.filter(image => image.label.toLowerCase() == this.filter.toLowerCase())
+        return result;
+      }
+      return images
+    }
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h3 {
-  margin: 40px 0 0;
+  #con {
+    border-radius: 16px;
+  }
+
+.label {
+  position: absolute;
+  bottom: 8px;
+  left: 16px;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 18px;
+  color: #FFFFFF;
+  word-wrap: break-word;
+  width: 289.53px;
+  margin-bottom: 10px;
 }
-ul {
-  list-style-type: none;
-  padding: 0;
+
+.container {
+  position: relative;
 }
-li {
-  display: inline-block;
-  margin: 0 10px;
+
+.delete-btn{
+  position: absolute;
+  top: 8px;
+  right: 16px;
+  width: 63px;
+  height: 23px;
+  border-radius: 38px;
 }
-a {
-  color: #42b983;
+
+.card {
+  width: 620px;
+  height: 276.12px;
+  background: #FFFFFF;
+  border-radius: 12px;
+}
+
+.headingText {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 24px;
+  color: #333333;
+}
+
+.noImages {
+  color: #3DB46D;
+  text-align: center;
+  padding-top: 150px;
+  font-size: 25px;
 }
 </style>
