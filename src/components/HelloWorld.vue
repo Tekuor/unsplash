@@ -1,5 +1,7 @@
 <template>
 <div>
+  <b-loading v-if="loading" :is-full-page="false" v-model="loading" :can-cancel="false"></b-loading>
+  <div v-else>
    <masonry
       :gutter="{ default: '30px', 700: '15px' }"
       :cols="{ default: 3, 1000: 3, 700: 2, 500: 1 }"
@@ -20,6 +22,7 @@
     </masonry>
 
     <div v-else class="noImages">No Images Available</div>
+  </div>
 </div>
 </template>
 
@@ -37,7 +40,8 @@ export default {
     return{
       hoveredId:"",
       password: "",
-      deleteModalActive: false
+      deleteModalActive: false,
+      loading: false
     }
   },
   methods:{
@@ -56,7 +60,14 @@ export default {
       })
     },
     async getAllImages(){
-      await this.getTotalImages({})
+      try{
+        this.loading = true
+        await this.getTotalImages({})
+      }catch(e){
+        console.log(e)
+      }finally{
+        this.loading = false
+      }
     },
     async deleteImage(id){
       await this.deleteOneImage(id)
